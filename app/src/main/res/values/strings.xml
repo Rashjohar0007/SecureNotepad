@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SecureNotepad</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="notepad_hint_text">Add data here...</string>
 </resources>
