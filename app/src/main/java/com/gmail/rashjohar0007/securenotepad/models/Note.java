@@ -1,5 +1,7 @@
 package com.gmail.rashjohar0007.securenotepad.models;
 
+import com.gmail.rashjohar0007.securenotepad.basic.DatabaseSupport;
+
 import java.io.Serializable;
 
 public class Note implements Serializable{
@@ -38,5 +40,8 @@ public class Note implements Serializable{
 
     public void setTitle(String title) {
         this.title = title;
+    }
+    public void SaveNote(DatabaseSupport databaseSupport) {
+        databaseSupport.addNote(this);
     }
 }
