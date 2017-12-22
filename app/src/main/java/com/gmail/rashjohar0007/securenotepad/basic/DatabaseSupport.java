@@ -19,8 +19,11 @@ public class DatabaseSupport extends SQLiteOpenHelper implements IConstants{
     private static final int DATABASE_VERSION = 1;
 
     private static final String TABLE_NOTES= "Notes";
+    private static final String TABLE_USER= "User";
     private static final String TABLE_NOTES_KEYS= "NoteKeys";
     private static final String KEY_NOTE_ID = "id";
+    private static final String KEY_SECURE_KEY = "secure";
+    private static final String KEY_LOGIN_KEY = "login";
     private static final String KEY_NOTE_KEY = "key";
     private static final String KEY_NOTE_TITLE = "title";
     private static final String KEY_NOTE_DATA = "data";
@@ -43,6 +46,11 @@ public class DatabaseSupport extends SQLiteOpenHelper implements IConstants{
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
+        String CREATE_USER = "CREATE TABLE " + TABLE_USER +
+                "(" +
+                KEY_LOGIN_KEY + " TEXT," +
+                KEY_SECURE_KEY + " TEXT" +
+                ")";
         String CREATE_NOTE_TABLE = "CREATE TABLE " + TABLE_NOTES +
                 "(" +
                 KEY_NOTE_ID + " INTEGER PRIMARY KEY," +
@@ -54,6 +62,7 @@ public class DatabaseSupport extends SQLiteOpenHelper implements IConstants{
                 KEY_NOTE_ID + " INTEGER PRIMARY KEY," +
                 KEY_NOTE_KEY + " TEXT" +
                 ")";
+        sqLiteDatabase.execSQL(CREATE_USER);
         sqLiteDatabase.execSQL(CREATE_NOTE_TABLE);
         sqLiteDatabase.execSQL(CREATE_NOTE_KEY_TABLE);
     }
@@ -61,6 +70,7 @@ public class DatabaseSupport extends SQLiteOpenHelper implements IConstants{
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
         if (i != i1) {
+            sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_USER);
             sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_NOTES);
             sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_NOTES_KEYS);
             onCreate(sqLiteDatabase);
@@ -71,6 +81,22 @@ public class DatabaseSupport extends SQLiteOpenHelper implements IConstants{
     public void onConfigure(SQLiteDatabase db) {
         super.onConfigure(db);
         db.setForeignKeyConstraintsEnabled(true);
+    }
+    public void addUSERLogin(String login,String secure)
+    {
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+        try {
+            ContentValues values = new ContentValues();
+            values.put(KEY_LOGIN_KEY, login);
+            values.put(KEY_SECURE_KEY, secure);
+            db.insertOrThrow(TABLE_USER, null, values);
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to add post to database");
+        } finally {
+            db.endTransaction();
+        }
     }
     public void addNote(String key,Note note) {
         SQLiteDatabase db = getWritableDatabase();

@@ -13,7 +13,8 @@ public class BaseActivity extends AppCompatActivity implements IConstants{
     protected SharedPreferences preferences;
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         databaseSupport=DatabaseSupport.getInstance(this);
         preferences= PreferenceManager.getDefaultSharedPreferences(this);
     }
