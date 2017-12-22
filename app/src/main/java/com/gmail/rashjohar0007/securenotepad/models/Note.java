@@ -41,7 +41,10 @@ public class Note implements Serializable{
     public void setTitle(String title) {
         this.title = title;
     }
-    public void SaveNote(DatabaseSupport databaseSupport) {
-        databaseSupport.addNote(this);
+    public void SaveNote(String key,DatabaseSupport databaseSupport) {
+        databaseSupport.addNote(key,this);
+    }
+    public void SaveorModifyNote(String key,DatabaseSupport databaseSupport) {
+        databaseSupport.addOrUpdateNote(key,this);
     }
 }

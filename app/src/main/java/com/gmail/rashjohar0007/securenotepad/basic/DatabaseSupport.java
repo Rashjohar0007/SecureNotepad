@@ -19,7 +19,9 @@ public class DatabaseSupport extends SQLiteOpenHelper implements IConstants{
     private static final int DATABASE_VERSION = 1;
 
     private static final String TABLE_NOTES= "Notes";
+    private static final String TABLE_NOTES_KEYS= "NoteKeys";
     private static final String KEY_NOTE_ID = "id";
+    private static final String KEY_NOTE_KEY = "key";
     private static final String KEY_NOTE_TITLE = "title";
     private static final String KEY_NOTE_DATA = "data";
 
@@ -47,13 +49,20 @@ public class DatabaseSupport extends SQLiteOpenHelper implements IConstants{
                 KEY_NOTE_TITLE + " TEXT," +
                 KEY_NOTE_DATA + " TEXT" +
                 ")";
+        String CREATE_NOTE_KEY_TABLE = "CREATE TABLE " + TABLE_NOTES_KEYS +
+                "(" +
+                KEY_NOTE_ID + " INTEGER PRIMARY KEY," +
+                KEY_NOTE_KEY + " TEXT" +
+                ")";
         sqLiteDatabase.execSQL(CREATE_NOTE_TABLE);
+        sqLiteDatabase.execSQL(CREATE_NOTE_KEY_TABLE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
         if (i != i1) {
             sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_NOTES);
+            sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_NOTES_KEYS);
             onCreate(sqLiteDatabase);
         }
     }
@@ -63,7 +72,7 @@ public class DatabaseSupport extends SQLiteOpenHelper implements IConstants{
         super.onConfigure(db);
         db.setForeignKeyConstraintsEnabled(true);
     }
-    public void addNote(Note note) {
+    public void addNote(String key,Note note) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         try {
@@ -73,13 +82,18 @@ public class DatabaseSupport extends SQLiteOpenHelper implements IConstants{
             values.put(KEY_NOTE_DATA, note.getData());
             db.insertOrThrow(TABLE_NOTES, null, values);
             db.setTransactionSuccessful();
+            ContentValues values2 = new ContentValues();
+            values.put(KEY_NOTE_ID, note.getId());
+            values.put(KEY_NOTE_KEY, key);
+            db.insertOrThrow(TABLE_NOTES_KEYS, null, values2);
+            db.setTransactionSuccessful();
         } catch (Exception e) {
             Log.d(TAG, "Error while trying to add post to database");
         } finally {
             db.endTransaction();
         }
     }
-    public long addOrUpdateNote(Note note) {
+    public long addOrUpdateNote(String key,Note note) {
         SQLiteDatabase db = getWritableDatabase();
         long userId = -1;
 
@@ -106,6 +120,10 @@ public class DatabaseSupport extends SQLiteOpenHelper implements IConstants{
             } else {
                 userId = db.insertOrThrow(TABLE_NOTES, null, values);
                 db.setTransactionSuccessful();
+                ContentValues values2 = new ContentValues();
+                values.put(KEY_NOTE_ID, note.getId());
+                values.put(KEY_NOTE_KEY, key);
+                db.insertOrThrow(TABLE_NOTES_KEYS, null, values2);
             }
         } catch (Exception e) {
             Log.d(TAG, "Error while trying to add or update user");
@@ -137,21 +155,46 @@ public class DatabaseSupport extends SQLiteOpenHelper implements IConstants{
         }
         return posts;
     }
-
-    /*public int updateUserProfilePicture(User user) {
+    public int getKey() {
+        int count=getAllNotes().size();
+        if(count<=0) {
+            return 1;
+        } else {
+            String POSTS_SELECT_QUERY =
+                    String.format("SELECT MAX(%s) FROM %s",
+                            KEY_NOTE_ID,TABLE_NOTES);
+            SQLiteDatabase db = getReadableDatabase();
+            Cursor cursor = db.rawQuery(POSTS_SELECT_QUERY, null);
+            try {
+                if (cursor.moveToFirst()) {
+                    return cursor.getInt(cursor.getColumnIndex(KEY_NOTE_ID))+1;
+                }
+            } catch (Exception e) {
+                Log.d(TAG, "Error while trying to get posts from database");
+            } finally {
+                if (cursor != null && !cursor.isClosed()) {
+                    cursor.close();
+                }
+            }
+            return 1;
+        }
+    }
+    public int updateNote(Note note) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(KEY_USER_PROFILE_PICTURE_URL, user.profilePictureUrl);
+        values.put(KEY_NOTE_TITLE, note.getTitle());
+        values.put(KEY_NOTE_DATA, note.getData());
 
-        return db.update(TABLE_USERS, values, KEY_USER_NAME + " = ?",
-                new String[] { String.valueOf(user.userName) });
-    }*/
+        return db.update(TABLE_NOTES, values, KEY_NOTE_ID + " = ?",
+                new String[] { String.valueOf(note.getId()) });
+    }
     public void deleteNote(Note note) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         try {
             db.delete(TABLE_NOTES, KEY_NOTE_ID + "= ?", new String[]{note.getId()+""});
+            db.delete(TABLE_NOTES_KEYS, KEY_NOTE_ID + "= ?", new String[]{note.getId()+""});
             db.setTransactionSuccessful();
         } catch (Exception e) {
             Log.d(TAG, "Error while trying to delete all posts and users");
