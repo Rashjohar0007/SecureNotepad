@@ -193,7 +193,7 @@ public class DatabaseSupport extends SQLiteOpenHelper implements IConstants{
             Cursor cursor = db.rawQuery(POSTS_SELECT_QUERY, null);
             try {
                 if (cursor.moveToFirst()) {
-                    return cursor.getInt(cursor.getColumnIndex(KEY_NOTE_ID))+1;
+                    return cursor.getInt(0)+1;
                 }
             } catch (Exception e) {
                 Log.d(TAG, "Error while trying to get posts from database");

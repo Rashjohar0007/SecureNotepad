@@ -6,7 +6,6 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -16,14 +15,7 @@ import com.gmail.rashjohar0007.securenotepad.basic.BaseActivity;
 import com.gmail.rashjohar0007.securenotepad.basic.Cryptography;
 import com.gmail.rashjohar0007.securenotepad.models.Note;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
+import java.security.GeneralSecurityException;
 
 public class NotepadActivity extends BaseActivity {
     private AppCompatEditText note_title;
@@ -64,22 +56,30 @@ public class NotepadActivity extends BaseActivity {
                 if(!note_title.getText().toString().equals("")) {
                     if(preferences.contains(KEY_PREF_SECURE)) {
                         String secure=preferences.getString(KEY_PREF_SECURE,"");
-                        int id=databaseSupport.getKey();
-                        SecretKey pass= null;
+                        String login=preferences.getString(KEY_PREF_LOGIN,"");
+                        int id=thisnote.getId();
+                        String data= "";
+                        String key="";
+                        try {
+                            data = Cryptography.encrypt(secure,textData.getText().toString());
+                            key= Cryptography.encrypt(login,secure);
+                        } catch (GeneralSecurityException e) {
+
+                        }
+
+                        /*SecretKey pass= null;
                         try {
                             pass = Cryptography.generateKey(secure);
-                        } catch (NoSuchAlgorithmException e) {
-
-                        } catch (InvalidKeySpecException e) {
+                        } catch (Exception e) {
 
                         }
                         String key=Cryptography.ConvertKeyToString(pass);
-                        String data= null;
+                        String data= "";
                         try {
                             data = Cryptography.Encrypt(pass,textData.getText().toString());
                         } catch (Exception e) {
                             Log.e(TAG,e.getMessage());
-                        }
+                        }*/
                         Note note=new Note(id,note_title.getText().toString(),data);
                         note.SaveorModifyNote(key,databaseSupport);
                         Toast.makeText(getApplicationContext(),"Note Added.",Toast.LENGTH_SHORT).show();
